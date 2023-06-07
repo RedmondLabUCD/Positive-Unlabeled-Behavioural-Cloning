@@ -15,5 +15,11 @@ If you want only run full PUBC:
 
     python main.py  --raw-dataset-path='<path to the mixed dataset>'  --pos-seed-dataset-path='<path to the seed dataset>'  --train-policy=True --policy='bc'
 
+If you want to use the trained filter for traing BC:
+
+    python main.py  --raw-dataset-path='<path to the mixed dataset>'  --pos-seed-dataset-path='<path to the seed dataset>'  --load-trained-filter=True  --trained-filter-path=='<path to the trained models>'  --ckpt-iterations=<iterations number for training the trained models>  --train-policy=True --policy='bc' 
+
+
 # Evaluate PUBC
 To submit the trained policy model for evaluation on a real robot cluster, please follow the instructions provided on this page: https://webdav.tuebingen.mpg.de/trifinger-rl/docs/real_robot/submission_system.html
+
