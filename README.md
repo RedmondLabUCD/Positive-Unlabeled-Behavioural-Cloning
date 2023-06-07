@@ -1,5 +1,5 @@
 # Positive Unlabeled Behavioural Cloning (PUBC)
-This code has been developed to reproduce the PUBC methodology described in our paper titled "Improving Behavioural Cloning with Positive Unlabeled Learning". We have included two of the most challenging real-world physical robotic manipulation tasks in this repository for demonstration.
+This code has been developed to reproduce the PUBC methodology described in our paper titled **Improving Behavioural Cloning with Positive Unlabeled Learning**. We have included two of the most challenging real-world physical robotic manipulation tasks in this repository for demonstration.
 
 # Installation
     pip install -r requirements.txt
