@@ -16,6 +16,8 @@ import os
 import random
 from utils import matrix
 import gc
+import seaborn
+from matplotlib import pyplot as plt
 
 def set_seed(seed):
     utils.set_seed(seed)
@@ -47,18 +49,17 @@ class PUTrainer():
         self.turn_step = 0
         self.total_step = 0
         self.model = None
-        
+    
+    # Reset the neural network and its corresponding optimizer after each iteration.
     def reset(self):
         if self.model != None:
             del self.model
             gc.collect()
-            
         self.model = []
         for i in range(self.args.models_in_ensemble):
             self.model.append(models.FilterNet(self.args,
                                               bias=True
                                               ).to(self.device))
-            
         self.optimizer = []
         for j in self.model:
             self.optimizer.append(torch.optim.Adam(j.parameters(),
@@ -91,22 +92,20 @@ class PUTrainer():
                     self.optimizer[idx].zero_grad()
                     loss.backward()
                     self.optimizer[idx].step()
-    
+                    
                     self.train_logger.add_metric(
                         f'loss-model={idx+1}', loss.cpu().detach().numpy())
                     epoch_loss['loss'].append(loss.cpu().detach().numpy())
-                    
                     self.total_step += 1
-                    
                     self.train_logger.commit(self.turn_step, self.total_step)
                 
                 print(f"Iteration: {turn+1}   Model: {idx}   Epoch: {epoch}   Loss: {np.array(epoch_loss['loss']).mean()}")
-
+        
+        # This step is important. It utilizes the classifier to filter the dataset to get the labels.
         amount, acc, count, probs = validate_func(self.model,
                                                         f'{self.args.save_path}/{self.train_logger._experiment_name}/adap_probs-iteration={turn+1}.jpg')
         
-        import seaborn
-        from matplotlib import pyplot as plt   
+        # Save models and logs
         seaborn.displot( 
           data=np.array(probs), 
           kind="hist", 
@@ -120,21 +119,21 @@ class PUTrainer():
         plt.ylabel("Amount")
         plt.savefig(f'{self.args.save_path}/{self.train_logger._experiment_name}/hist-iteration={turn+1}.jpg',
                     dpi=400,bbox_inches='tight')
-            
         conf_log = [turn+1, acc]
         self.conf_mat.update(conf_log)
         self.conf_mat.save(f'{self.args.save_path}/{self.train_logger._experiment_name}/accuracy.csv')
         print(f"Iteration: {turn+1}   Final   Acc: {acc}   ")
         print("-"*50)
-        
         self.save(
             self.turn+1, path=f'{self.args.save_path}/{self.train_logger._experiment_name}')
         self.turn += 1
-                
-    def save(self, epoch, path=None):
-        for idx,model in enumerate(self.model):
-            torch.save(model.state_dict(), f'{path}/ckpt-model={idx+1}-iteration={epoch}.pth')
 
+    def save(self, epoch, path=None):
+        for idx, model in enumerate(self.model):
+            torch.save(model.state_dict(),
+                       f'{path}/ckpt-model={idx+1}-iteration={epoch}.pth')
+
+    # Load the model from the path provided in the 'args' and utilize the classifier to filter the dataset in the 'validate_func'.
     def load(self, validate_func=None):
         self.reset()
         for idx,model in enumerate(self.model):
@@ -144,8 +143,6 @@ class PUTrainer():
         if validate_func:
             amount, acc, count, probs = validate_func(self.model,
                                                             f'{self.args.save_path}/{self.train_logger._experiment_name}/adap_probs_{self.args.ckpt_iterations}.jpg')
-            import seaborn
-            from matplotlib import pyplot as plt   
             seaborn.displot( 
               data=np.array(probs), 
               kind="hist", 

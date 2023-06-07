@@ -37,7 +37,8 @@ class PUBuffer():
         print(f'Action dimension:{self.args.action_dim}')
         self.args.max_action = self.raw_dataset['actions'].max()
         self.args.max_observation = self.raw_dataset['observations'].max()
-        
+    
+    # Init the seed-positive dataset
     def set_seed_positive(self):
         self.torch_loader = []
         for i in range(self.args.models_in_ensemble):
@@ -59,6 +60,7 @@ class PUBuffer():
         del self.buffers, self.torch_loader
         gc.collect()
     
+    # Update the positive dataset
     def update_pos(self):
         num_in_each = math.floor(self.relabel_num / self.args.models_in_ensemble)
         print(f'{self.relabel_num}/{self.raw_len} samples in the new dataset')
@@ -97,6 +99,7 @@ class PUBuffer():
         print(f'{self.relabel_num}/{self.raw_len} samples in the new dataset')
         return train_set
     
+    # Evaluate the accuracy of classfication
     def _eval_accracy(self):
         assert self.relabel.shape[0] == self.ground_truth.shape[0], "Error"
         total = self.ground_truth.shape[0]
@@ -114,7 +117,8 @@ class PUBuffer():
                 self.buffers[i], self.raw_dataset, self.args, transform=None)
             self.torch_loader.append(DataLoader(
                 dataset, batch_size=self.args.batch_size, shuffle=True))
-        
+    
+    # Use the classifier to filter the dataset
     def classifier_validate(self, classifiers, log_path=None):
         with torch.no_grad():
             temp_obs = []

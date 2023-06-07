@@ -38,6 +38,7 @@ def device_handler(args):
         device = torch.device('cpu')
     return device
 
+
 def d3rlpy_device_handler(args):
     if torch.cuda.is_available() and args.use_gpu:
         gpu = Device(0)
@@ -46,6 +47,7 @@ def d3rlpy_device_handler(args):
         gpu = False
     return gpu
 
+
 def directory_handler(args):
     if not args.save_path:
         proj_root_path = os.path.split(os.path.realpath(__file__))[0]
@@ -53,6 +55,7 @@ def directory_handler(args):
     if os.path.split(args.save_path)[-1] != args.exp_name:
         args.save_path = f'{args.save_path}/{args.exp_name}'
     return args
+
 
 def policy_handler(args):
     if args.policy == 'bc':
@@ -142,6 +145,7 @@ def adap_probs(probs, bins=100, fit_pow=8, prob_th=0.96, plot=True, save_plot_pa
     print(f'The adaptive probability is {adap_p}')
     return adap_p
 
+
 def set_seed(seed):
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -192,10 +196,12 @@ def get_pos_seed_by_reward(dataset, percent=0.02):
     temp_dataset['actions'] = np.array(pos_seed_actions)
     return temp_dataset
 
+
 def save_params(args):
     args_dict = vars(args)
     with open(f'{args.save_path}/params.json', 'w') as f:
         json.dump(args_dict, f, indent=4)
+
 
 def load_params(path):
     with open(path, 'r') as f:
