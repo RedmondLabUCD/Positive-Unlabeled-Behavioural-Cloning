@@ -1,0 +1,67 @@
+{
+  "action_scaler": {
+    "type": "min_max",
+    "params": {
+      "minimum": [
+        [
+          -0.3970000147819519,
+          -0.3970000147819519,
+          -0.3970000147819519,
+          -0.3970000147819519,
+          -0.3970000147819519,
+          -0.3970000147819519,
+          -0.3970000147819519,
+          -0.3970000147819519,
+          -0.3970000147819519
+        ]
+      ],
+      "maximum": [
+        [
+          0.3970000147819519,
+          0.3970000147819519,
+          0.3970000147819519,
+          0.3970000147819519,
+          0.3970000147819519,
+          0.35215896368026733,
+          0.3970000147819519,
+          0.3970000147819519,
+          0.3970000147819519
+        ]
+      ]
+    }
+  },
+  "batch_size": 1024,
+  "encoder_factory": {
+    "type": "default",
+    "params": {
+      "activation": "relu",
+      "use_batch_norm": false,
+      "dropout_rate": null
+    }
+  },
+  "gamma": 1.0,
+  "generated_maxlen": 100000,
+  "learning_rate": 0.001,
+  "n_frames": 1,
+  "n_steps": 1,
+  "optim_factory": {
+    "optim_cls": "Adam",
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "eps": 1e-08,
+    "weight_decay": 0,
+    "amsgrad": false
+  },
+  "policy_type": "deterministic",
+  "real_ratio": 1.0,
+  "reward_scaler": null,
+  "scaler": null,
+  "use_gpu": 0,
+  "algorithm": "BC",
+  "observation_shape": [
+    97
+  ],
+  "action_size": 9
+}
