@@ -45,8 +45,8 @@ def main_filter(args):
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--raw-dataset-path', type=str, default='/home/qiang/Novel data recognizor/rrc_real_push_mixed/rrc-real-push-mixed.npy', help='Path to the raw mixed dataset')
-    parser.add_argument('--pos-seed-dataset-path', type=str, default='/home/qiang/Novel data recognizor/rrc_real_push_mixed/rrc-real-push-seed.npy', help='Path to the seed-positive dataset')
+    parser.add_argument('--raw-dataset-path', type=str, default='<path to the mixed dataset>', help='Path to the raw mixed dataset')
+    parser.add_argument('--pos-seed-dataset-path', type=str, default='<path to the seed dataset (optional)>', help='Path to the seed-positive dataset')
     parser.add_argument('--exp-name', type=str, default="pubc", help='Experiment name')
     parser.add_argument('--models-in-ensemble', type=int, default=3, help='Number of unit models in the ensemble model')
     parser.add_argument('--ensemble-method', type=str, default='vote',  help="'avg' or 'vote'")
