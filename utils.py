@@ -22,7 +22,8 @@ import scipy.signal as sg
 import matplotlib.pyplot as plt
 from copy import copy
 from d3rlpy.algos import PLAS,IQL,TD3PlusBC,BC,CRR
-
+import argparse
+from d3rlpy.gpu import Device
 
 RRC_LIFT_TASK_OBS_DIM = 139
 RRC_PUSH_TASK_OBS_DIM = 97
@@ -31,12 +32,19 @@ RRC_MAX_ACTION = 0.397
 
 def device_handler(args):
     if torch.cuda.is_available() and args.use_gpu:
-        device = torch.device('cuda')
+        device = torch.device('cuda:0')
         print('Using CUDA')
     else:
         device = torch.device('cpu')
-    args.device = device
-    return args
+    return device
+
+def d3rlpy_device_handler(args):
+    if torch.cuda.is_available() and args.use_gpu:
+        gpu = Device(0)
+        print('Using CUDA')
+    else:
+        gpu = False
+    return gpu
 
 def directory_handler(args):
     if not args.save_path:
@@ -50,31 +58,36 @@ def policy_handler(args):
     if args.policy == 'bc':
         algorithm = BC(learning_rate=0.001, 
                        batch_size=1024,
-                       use_gpu=args.use_gpu)
+                       action_scaler='min_max',
+                       use_gpu=d3rlpy_device_handler(args))
     elif args.policy == 'td3bc':
         algorithm = TD3PlusBC(actor_learning_rate=0.0003,
                         critic_learning_rate=0.0003,
                         batch_size=256,
-                        use_gpu=args.use_gpu)
+                        action_scaler='min_max',
+                        use_gpu=d3rlpy_device_handler(args))
     elif args.policy == 'iql':
         algorithm = IQL(actor_learning_rate=0.0003,
                         critic_learning_rate=0.0003,
                         batch_size=256,
                         expectile=0.7,
                         weight_temp=3.0,
-                        use_gpu=args.use_gpu)
+                        action_scaler='min_max',
+                        use_gpu=d3rlpy_device_handler(args))
     elif args.policy == 'crr':
         algorithm = CRR(actor_learning_rate=0.0003,
                         critic_learning_rate=0.0003,
                         batch_size=256,
                         beta=1.0,
-                        use_gpu=args.use_gpu)
+                        action_scaler='min_max',
+                        use_gpu=d3rlpy_device_handler(args))
     elif args.policy == 'plas':
         algorithm = PLAS(actor_learning_rate=0.0001,
                         critic_learning_rate=0.001,
                         warmup_steps=500000,
                         beta=0.5,
-                        use_gpu=args.use_gpu)
+                        action_scaler='min_max',
+                        use_gpu=d3rlpy_device_handler(args))
     return algorithm
 
 
@@ -179,10 +192,22 @@ def get_pos_seed_by_reward(dataset, percent=0.02):
     temp_dataset['actions'] = np.array(pos_seed_actions)
     return temp_dataset
 
+def save_params(args):
+    args_dict = vars(args)
+    with open(f'{args.save_path}/params.json', 'w') as f:
+        json.dump(args_dict, f, indent=4)
+
+def load_params(path):
+    with open(path, 'r') as f:
+        loaded_args_dict = json.load(f)
+        loaded_args = argparse.Namespace(**loaded_args_dict)
+    return loaded_args
+
+
 class matrix():
     def __init__(self,
                  ):
-        self.title = ['TURN','ACC']
+        self.title = ['ITERATION','ACC']
         self.data = []
         
     def update(self,log):

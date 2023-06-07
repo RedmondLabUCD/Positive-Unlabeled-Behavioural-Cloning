@@ -32,7 +32,7 @@ class PUTrainer():
                  args):
         set_seed(args.seeds)
         self.args = args
-        self.device = utils.device_handler(args).device
+        self.device = utils.device_handler(args)
         self.criterion = torch.nn.BCELoss().to(self.device)
         self.train_logger = utils.TrainLogger(
             experiment_name=args.exp_name,
@@ -78,22 +78,12 @@ class PUTrainer():
                 self.turn_step += 1
                 
                 for [observations, actions, labels] in loader:
-                    
-                    if torch.cuda.is_available():
-                        observations = observations.cuda(
-                            non_blocking=True).to(torch.float32)
-                        actions = actions.cuda(
-                            non_blocking=True).to(torch.float32)
-                        labels = labels.cuda(
-                            non_blocking=True).to(torch.float32)
-    
-                    else:
-                        observations = torch.tensor(observations).to(
-                            torch.float32).to(self.device)
-                        actions = torch.tensor(actions).to(
-                            torch.float32).to(self.device)
-                        labels = torch.tensor(labels).to(
-                            torch.float32).to(self.device)
+                    observations = torch.tensor(observations).to(
+                        torch.float32).to(self.device)
+                    actions = torch.tensor(actions).to(
+                        torch.float32).to(self.device)
+                    labels = torch.tensor(labels).to(
+                        torch.float32).to(self.device)
                     
                     pred = self.model[idx](observations, actions)
                     loss = self.criterion(pred, labels)
@@ -103,17 +93,17 @@ class PUTrainer():
                     self.optimizer[idx].step()
     
                     self.train_logger.add_metric(
-                        f'loss_model{idx}', loss.cpu().detach().numpy())
+                        f'loss-model={idx+1}', loss.cpu().detach().numpy())
                     epoch_loss['loss'].append(loss.cpu().detach().numpy())
                     
                     self.total_step += 1
                     
                     self.train_logger.commit(self.turn_step, self.total_step)
                 
-                print(f"Turn: {turn}   Model: {idx}   Epoch: {epoch}   Loss: {np.array(epoch_loss['loss']).mean()}")
+                print(f"Iteration: {turn+1}   Model: {idx}   Epoch: {epoch}   Loss: {np.array(epoch_loss['loss']).mean()}")
 
         amount, acc, count, probs = validate_func(self.model,
-                                                        f'{self.args.save_path}/{self.train_logger._experiment_name}/adap_probs_{turn}.jpg')
+                                                        f'{self.args.save_path}/{self.train_logger._experiment_name}/adap_probs-iteration={turn+1}.jpg')
         
         import seaborn
         from matplotlib import pyplot as plt   
@@ -123,28 +113,49 @@ class PUTrainer():
           aspect=1.4,
           bins=100,
         )
-        np.save(f'{self.args.save_path}/{self.train_logger._experiment_name}/prob_{turn}.npy', np.array(probs))
+        np.save(f'{self.args.save_path}/{self.train_logger._experiment_name}/probs-iteration={turn+1}.npy', np.array(probs))
         plt.plot()
         plt.tight_layout()
         plt.xlabel("Summed probs")
         plt.ylabel("Amount")
-        plt.savefig(f'{self.args.save_path}/{self.train_logger._experiment_name}/dist_{turn}.jpg',
+        plt.savefig(f'{self.args.save_path}/{self.train_logger._experiment_name}/hist-iteration={turn+1}.jpg',
                     dpi=400,bbox_inches='tight')
             
-        conf_log = [turn, acc]
+        conf_log = [turn+1, acc]
         self.conf_mat.update(conf_log)
-        self.conf_mat.save(f'{self.args.save_path}/{self.train_logger._experiment_name}/conf_matrix.csv')
-        print(f"Turn: {turn}   Final   Acc: {acc}   ")
+        self.conf_mat.save(f'{self.args.save_path}/{self.train_logger._experiment_name}/accuracy.csv')
+        print(f"Iteration: {turn+1}   Final   Acc: {acc}   ")
         print("-"*50)
         
         self.save(
-            self.turn, path=f'{self.args.save_path}/{self.train_logger._experiment_name}')
+            self.turn+1, path=f'{self.args.save_path}/{self.train_logger._experiment_name}')
         self.turn += 1
                 
     def save(self, epoch, path=None):
         for idx,model in enumerate(self.model):
-            torch.save(model.state_dict(), f'{path}/ckpt_model{idx}_{epoch}.pth')
+            torch.save(model.state_dict(), f'{path}/ckpt-model={idx+1}-iteration={epoch}.pth')
 
-    def load(self, path=None, epoch=None):
+    def load(self, validate_func=None):
+        self.reset()
         for idx,model in enumerate(self.model):
-            model.load_state_dict(torch.load(f"{path}/ckpt_model{idx}_{epoch}.pth", map_location=self.device))
+            model.load_state_dict(torch.load(f"{self.args.trained_filter_path}/ckpt-model={idx+1}-iteration={self.args.ckpt_iterations}.pth", map_location=self.device))
+        print('Model loaded!')
+        print('Using the trained model to filter the mixed dataset.')
+        if validate_func:
+            amount, acc, count, probs = validate_func(self.model,
+                                                            f'{self.args.save_path}/{self.train_logger._experiment_name}/adap_probs_{self.args.ckpt_iterations}.jpg')
+            import seaborn
+            from matplotlib import pyplot as plt   
+            seaborn.displot( 
+              data=np.array(probs), 
+              kind="hist", 
+              aspect=1.4,
+              bins=100,
+            )
+            np.save(f'{self.args.save_path}/{self.train_logger._experiment_name}/prob_{self.args.ckpt_iterations}.npy', np.array(probs))
+            plt.plot()
+            plt.tight_layout()
+            plt.xlabel("Summed probs")
+            plt.ylabel("Amount")
+            plt.savefig(f'{self.args.save_path}/{self.train_logger._experiment_name}/dist_{self.args.ckpt_iterations}.jpg',
+                        dpi=400,bbox_inches='tight')
