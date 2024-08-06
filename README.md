@@ -5,7 +5,7 @@ This code has been developed to reproduce the PUBC methodology described in our 
     pip install -r requirements.txt
     
 # Reproduce PUBC
-Firstly, you need to visit [THIS LINK]([https://drive.google.com/drive/folders/14EYcggpa4KCgRevSe0dh3H3-8leQGIok](https://zenodo.org/records/13228248?token=eyJhbGciOiJIUzUxMiJ9.eyJpZCI6IjY0MTZjNGM3LWRkNDEtNGNkNC1hNGYzLTY1MTNlNjg4ZjcxNSIsImRhdGEiOnt9LCJyYW5kb20iOiJjMzEwMDI3ODU0N2Y1ODJhMzllYmM0Y2Q1M2FhMTNiYyJ9.e6Z_A1w5dZgUS-UB3h53IvL1CpYYuH5E4sPTmy8ko47WdtIPM2zRfTp7NhKn4l6JLAhoRslbOfwOeXrBEvQZAg) to download the datasets to your local device.
+Firstly, you need to visit [THIS LINK](https://zenodo.org/records/13228248?token=eyJhbGciOiJIUzUxMiJ9.eyJpZCI6IjY0MTZjNGM3LWRkNDEtNGNkNC1hNGYzLTY1MTNlNjg4ZjcxNSIsImRhdGEiOnt9LCJyYW5kb20iOiJjMzEwMDI3ODU0N2Y1ODJhMzllYmM0Y2Q1M2FhMTNiYyJ9.e6Z_A1w5dZgUS-UB3h53IvL1CpYYuH5E4sPTmy8ko47WdtIPM2zRfTp7NhKn4l6JLAhoRslbOfwOeXrBEvQZAg) to download the datasets to your local device.
 
 If you want only run the PU learning(filter part) without policy learning:
 
